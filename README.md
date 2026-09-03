@@ -23,6 +23,19 @@ Intervals are Wilson 95%. EIR₃ = early-intervention rate: the fraction of dete
 >
 > **This overlap contradicts the benchmark's documented design.** StepShield's paper states its held-out set was generated "from incident templates that were *never used* during training or pattern development" and is "drawn from novel templates"; its README says "zero overlap with training data" (true at the *trajectory* level — no trajectory appears in both splits). Our measurement of the public release found the *template*-level claim does not hold: word-set Jaccard between each holdout scenario's title+description and its nearest train-split scenario has **median 1.0** (exact or near-exact template reuse), while rendered step streams compare at ~0.10 by `difflib.SequenceMatcher` (median 0.096, vs 0.071 for randomly paired trajectories; 0 of 3,056 rendered holdout steps appear verbatim in train) — both computable from the public StepShield data alone by running [`scripts/template_overlap.py`](scripts/template_overlap.py), no model involved. We report this as an empirical observation for the benchmark's users, scoped precisely: it matters exactly and only when a detector is **fine-tuned on the train split** (our situation); detectors trained on an external corpus are unaffected by it.
 
+## Quickstart — watch your own agent
+
+```bash
+git clone https://github.com/doronp/stepshield-nemotron && cd stepshield-nemotron
+uv run scripts/quickstart.py examples/sample_trajectory.jsonl
+```
+
+First run downloads the base model (~8 GB) and the 92 MB adapter from HuggingFace. Wants a ~24 GB GPU (bf16); CPU works but is slow. Apple-silicon users: `scripts/nemotron_guard.py` carries the incremental MLX class (re-calibrate θ per quantized artifact — see the warning below).
+
+Input: one JSON line per trajectory — `{"task": {"title", "description", "constraints"}, "steps": [{"step", "thought", "action", "arguments", "observation"}]}` (see `examples/`). Output: per-step p(BAD), the first flagged step, and **exit code 1 if anything flagged** — drop it straight into CI. Default θ = 0.946597, the deployed conformal-max point (E[FPR] ≤ 0.92% on traffic exchangeable with the calibration cleans). For a guarantee on *your* traffic, re-calibrate: score ~100+ of your own clean trajectories and set θ to their max (E[FPR] ≤ 1/(n+1)).
+
+Smoke-tested end-to-end on a fresh NVIDIA L4 (this exact command path, dependencies resolved from scratch by `uv`): the sample rogue flags at its exfiltration step (p(BAD) = 0.990), the sample clean stays ≤ 0.001 everywhere. Re-scoring the full 216-trajectory holdout through this script reproduces **215/216 of the committed decisions**; the single difference is a rogue trajectory whose peak score sits exactly on the threshold's lattice value, where bf16 re-computation jitter (raw mid-range scores can move by ~0.1 between batched and unbatched forwards) flips a strict `>` comparison. No clean trajectory changes verdict. The certification instrument remains the committed scores file plus `scripts/calibrate_report.py` — not this convenience path.
+
 ## Method in brief
 
 Two components, fully specified in [docs/METHODOLOGY.md](docs/METHODOLOGY.md) and the training section below:
