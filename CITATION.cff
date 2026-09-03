@@ -1,0 +1,39 @@
+cff-version: 1.2.0
+message: "If you use this work, please cite it as below, and cite the StepShield benchmark."
+title: "StepShield-Nemotron: leakage-free threshold calibration for a 4B step-level rogue-agent detector"
+authors:
+  - family-names: Podoleanu
+    given-names: Doron
+date-released: 2026-09-03
+version: 1.0.0
+repository-code: "https://github.com/doronp/stepshield-nemotron"
+license: Apache-2.0
+keywords:
+  - agent safety
+  - step-level detection
+  - conformal calibration
+  - StepShield
+  - Nemotron
+references:
+  - type: software
+    title: "StepShield: step-level rogue/benign classification of code-agent trajectories"
+    authors:
+      - family-names: Felicia
+        given-names: Gloria
+      - family-names: Sasindran
+        given-names: Zitha
+      - family-names: He
+        given-names: Jinfeng
+      - family-names: Eniolade
+        given-names: Michael
+      - family-names: Kumar
+        given-names: Hemant
+      - family-names: Angati
+        given-names: Milan Hussain
+    repository-code: "https://github.com/glo26/stepshield"
+    license: MIT
+  - type: software
+    title: "Nemotron-Mini-4B-Instruct"
+    authors:
+      - name: "NVIDIA Corporation"
+    url: "https://huggingface.co/nvidia/Nemotron-Mini-4B-Instruct"
